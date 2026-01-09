@@ -1,0 +1,4 @@
+evdev==1.7.0
+zeroconf==0.131.0
+httpx==0.27.0
+pyyaml==6.0.1

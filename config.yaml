@@ -1,0 +1,10 @@
+speaker:
+  name: "Phantom" # mDNS search string - usually "Phantom I" or "Phantom II" or room name
+  volume_step: 3
+  static_ip: null # Optional: "192.168.1.X" to bypass mDNS
+
+ir_codes:
+  # Replace these with your remote's specific codes using diagnostics.py
+  0x87ee01: "volume_up"
+  0x87ee02: "volume_down"
+  0x87ee03: "mute"
