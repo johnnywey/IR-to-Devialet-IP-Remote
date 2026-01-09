@@ -66,4 +66,5 @@ cover/
 
 # Project specific
 test_config.yaml
+config.yaml
 *.log

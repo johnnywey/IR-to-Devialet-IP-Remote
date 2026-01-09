@@ -31,6 +31,11 @@ This service bridges IR signals from a Siri Remote (or any IR remote) to control
     source venv/bin/activate
     python diagnostics.py
     ```
+    
+    Copy the example configuration:
+    ```bash
+    cp config.yaml.example config.yaml
+    ```
     Update `config.yaml` with the captured hex codes.
 
 5.  **Install Service:**
