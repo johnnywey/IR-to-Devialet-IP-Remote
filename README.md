@@ -46,6 +46,23 @@ This service bridges IR signals from an Apple TV Siri Remote (or any IR remote) 
     sudo systemctl start phantom-bridge
     ```
 
+## Compatibility & Known Issues
+
+### Firmware 3.x Support
+- **Mute Functionality:** Devialet Firmware 3.x (DOS 3) no longer supports the standard Mute API endpoints. This bridge implements a "Soft Mute" workaround: 
+  - **Mute:** Sets volume to 0.
+  - **Unmute:** Restores the previous volume level.
+- **Stereo Pairs:** You **must** control the "System Leader" (typically the Left speaker). 
+  - The bridge automatically validates connection candidates and will reject "Follower" speakers.
+  - If using a static IP in `config.yaml`, ensure it is the IP of the System Leader.
+  - If discovery fails, try restarting the speakers to refresh mDNS announcements.
+
 ## Troubleshooting
 - **Check logs:** `sudo journalctl -u phantom-bridge -f`
 - **Verify IR:** Run `diagnostics.py` (stop service first: `sudo systemctl stop phantom-bridge`).
+- **Manual Control:** Run `python manual_control.py` to test network control without IR. 
+  - Use `v` to check volume, `m` to mute, `u` to unmute.
+  - This tool also enforces the System Leader check, helping you identify the correct IP.
+- **SystemLeaderAbsent Error:** If you see this in logs, it means the bridge is trying to talk to a Follower speaker. 
+  - Ensure `devialet_client.py` is using the auto-discovery or that your static IP is correct.
+
