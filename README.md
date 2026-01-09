@@ -1,6 +1,6 @@
 # Devialet Phantom IR Bridge
 
-This service bridges IR signals from a Siri Remote (or any IR remote) to control Devialet Phantom speakers over the network.
+This service bridges IR signals from an Apple TV Siri Remote (or any IR remote) to control Devialet Phantom speakers over the network.
 
 ## Hardware Requirements
 - Raspberry Pi 4 Model B (or similar)

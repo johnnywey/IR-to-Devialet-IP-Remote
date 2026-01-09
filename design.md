@@ -1,7 +1,3 @@
-This document is the finalized **Technical Design & PRD** for your project. You can copy the content below and provide it directly to your agentic developer (e.g., as a `PRD.md` file).
-
----
-
 # PRD: Siri Remote to Devialet Phantom IR-Network Bridge
 
 ## 1. Preamble for the Developer Agent
