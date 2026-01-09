@@ -16,6 +16,12 @@ logging.basicConfig(
 logger = logging.getLogger("PhantomBridge")
 
 class PhantomBridge:
+    """
+    Main application bridge.
+    
+    Coordinates between IR input events and the Devialet Client.
+    Handles IR signal debouncing and execution of mapped actions.
+    """
     def __init__(self, config_path: str):
         with open(config_path, 'r') as f:
             self.config = yaml.safe_load(f)
@@ -30,12 +36,23 @@ class PhantomBridge:
         self.running = True
 
     async def get_ir_device(self):
+        """
+        Scan system input devices to find a likely IR receiver.
+        
+        Searches for devices with 'gpio' or 'ir' in their name.
+        """
         devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
         # Typically the plugin creates "gpio_ir_recv"
         ir_dev = next((d for d in devices if "gpio" in d.name.lower() or "ir" in d.name.lower()), None)
         return ir_dev
 
     async def handle_input(self, device):
+        """
+        Main input loop for a connected device.
+        
+        Args:
+            device: The evdev InputDevice instance.
+        """
         logger.info(f"Listening for IR events on {device.name} ({device.path})...")
         
         # Async read of evdev events
@@ -44,6 +61,15 @@ class PhantomBridge:
                 await self.process_ir_code(event.value)
 
     async def process_ir_code(self, scancode: int):
+        """
+        Map IR scancodes to actions and execute them via the client.
+        
+        Includes simple debouncing for volume actions to prevent rapid-fire repeats
+        from overwhelming the speaker or network.
+        
+        Args:
+            scancode (int): Raw IR scancode.
+        """
         action = self.ir_codes.get(scancode)
         if not action:
             logger.debug(f"Unknown scancode: {hex(scancode)}")
@@ -67,24 +93,6 @@ class PhantomBridge:
                 current_vol = await self.client.get_volume()
                 await self.client.set_volume(current_vol - self.volume_step)
             elif action == "mute":
-                # Toggle mute? Or just mute? 
-                # API has mute/unmute. Usually toggle is nice but "mute" implies setting mute.
-                # Let's assume toggle for better UX or we check current state?
-                # The prompt just says "Mute/Unmute" POST. Typically toggling requires knowing state.
-                # We'll try to just send mute=True for now, but a toggle is better.
-                # Let's see if we can get property to toggle. Get Volume usually doesn't return mute state in all APIs.
-                # Devialet API: GET /ipcontrol/v1/systems/current/sources/current/soundControl/volume -> {"volume": 0-100}
-                # No mute state in volume response.
-                # Let's just implement explicit mute for now, or assume toggle if we track it?
-                # Best effort: Send mute=True. Or maybe there's a /mute GET?
-                # PRD says: POST .../mute { "muted": bool }
-                # Let's assume we want to Toggle. But we can't read it easily without perhpas another endpoint.
-                # For safety/simplicity as requested, let's implement MUTE as "Mute" (true) and maybe another code for Unmute?
-                # Actually, remote buttons are usually toggles. 
-                # Let's implement MUTE as Mute=True.
-                # Wait, if I am muted, I want to unmute.
-                # Let's try to keeping local state? No, local state might drift.
-                # Let's just send Mute=True. Users can Volume Up to unmute usually.
                 await self.client.set_mute(True)
 
         except Exception as e:

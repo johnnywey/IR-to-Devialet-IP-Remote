@@ -1,8 +1,21 @@
+"""
+Diagnostic tool to identify IR remote codes.
+
+This script scans for available input devices, identifies the likely IR receiver,
+and then listens for input events, printing the hex and integer values of captured scancodes.
+"""
 import evdev
 from evdev import ecodes
 import sys
 
 def main():
+    """
+    Main diagnostic loop.
+    
+    1. Lists input devices.
+    2. Identifies IR receiver.
+    3. Prints captured scancodes until interrupted.
+    """
     print("Looking for IR receiver...")
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     

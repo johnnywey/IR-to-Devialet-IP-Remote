@@ -1,3 +1,10 @@
+"""
+Manual verification tool for simple network testing.
+
+Allows sending volume and mute commands to the speaker via the terminal
+to verify that the DevialetClient logic and network connectivity are working
+correctly, bypassing the IR hardware.
+"""
 import asyncio
 import logging
 import yaml
@@ -12,6 +19,11 @@ logging.basicConfig(
 logger = logging.getLogger("ManualControl")
 
 async def main():
+    """
+    Interactive command loop.
+    
+    Discovers the speaker and accepts keypress commands to control volume.
+    """
     try:
         with open("config.yaml", 'r') as f:
             config = yaml.safe_load(f)
