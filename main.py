@@ -93,7 +93,19 @@ class PhantomBridge:
                 current_vol = await self.client.get_volume()
                 await self.client.set_volume(current_vol - self.volume_step)
             elif action == "mute":
-                await self.client.set_mute(True)
+                # We attempt to toggle mute.
+                # Since API doesn't easily return mute state in volume GET, we will use a local flag
+                # or just always MUTE if that is the safer default?
+                # Actually, if volume is > 0, we are probably unmuted. 
+                # But let's try to be smart.
+                # If we send 'mute', it mutes. If we are muted, we want to 'unmute'.
+                # Let's try to just send MUTE for now, but really we want toggle.
+                # Let's add a local toggle variable to the class.
+                self.is_muted = not getattr(self, 'is_muted', False)
+                await self.client.set_mute(self.is_muted)
+                
+                # If unmuting, maybe we should also set volume?
+                # For now let's trust the endpoint.
 
         except Exception as e:
             logger.error(f"Failed to execute action {action}: {e}")

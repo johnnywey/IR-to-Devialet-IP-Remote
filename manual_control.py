@@ -9,6 +9,8 @@ import asyncio
 import logging
 import yaml
 import sys
+import tty
+import termios
 from devialet_client import DevialetClient
 
 # Configure logging to see what's happening
@@ -39,53 +41,63 @@ async def main():
     # Start discovery in background
     asyncio.create_task(client.start())
     
-    print("Waiting for speaker connection...")
-    if await client.check_connection() or await client.get_volume(): # This will block until discovered
-         print(f"Connected to speaker at {client.speaker_ip}")
+    print("Waiting for speaker connection (System Leader)...")
+    await client.discovery_event.wait()
+    
+    # We found the leader
+    print(f"Connected to verified System Leader at {client.speaker_ip}")
+    await client.get_volume()
     
     print("\nControls:")
     print("  + : Volume Up")
     print("  - : Volume Down")
-    print("  m : Toggle Mute (sends mute=True)")
+    print("  m : Mute (set vol 0)")
+    print("  u : Unmute (restore vol)")
     print("  v : Get Current Volume")
     print("  q : Quit")
-    
-    while True:
-        try:
-            cmd = await asyncio.get_event_loop().run_in_executor(None, input, "\nCommand: ")
-            cmd = cmd.strip().lower()
+
+    loop = asyncio.get_running_loop()
+    # Set stdin to non-blocking
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setcbreak(fd)
+        
+        while True:
+            # Simple async input reading
+            key = await loop.run_in_executor(None, sys.stdin.read, 1)
             
-            if cmd == 'q':
+            if key == 'q':
                 break
-            
-            elif cmd == 'v':
+            elif key == '+':
+                print("\nVolume Up")
+                current = await client.get_volume()
+                await client.set_volume(current + 5)
+                # Show new volume
+                new_vol = await client.get_volume()
+                print(f"Volume: {new_vol}")
+            elif key == '-':
+                print("\nVolume Down")
+                current = await client.get_volume()
+                await client.set_volume(current - 5)
+                new_vol = await client.get_volume()
+                print(f"Volume: {new_vol}")
+            elif key == 'v':
+                print("\ncheck volume...")
                 vol = await client.get_volume()
                 print(f"Current Volume: {vol}")
-            
-            elif cmd == '+':
-                curr = await client.get_volume()
-                new_vol = curr + config.get('speaker', {}).get('volume_step', 2)
-                print(f"Setting volume to {new_vol}...")
-                await client.set_volume(new_vol)
-                
-            elif cmd == '-':
-                curr = await client.get_volume()
-                new_vol = curr - config.get('speaker', {}).get('volume_step', 2)
-                print(f"Setting volume to {new_vol}...")
-                await client.set_volume(new_vol)
-                
-            elif cmd == 'm':
-                print("Sending Mute command...")
+            elif key == 'm':
+                print("\nMuting...")
                 await client.set_mute(True)
-                
+            elif key == 'u':
+                print("\nUnmuting...")
+                await client.set_mute(False)
             else:
-                print("Unknown command.")
-                
-        except Exception as e:
-            print(f"Error: {e}")
-            
-    await client.close()
-    print("Exiting.")
+                print("\nUnknown command.")
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        await client.close()
+        print("\nExiting.")
 
 if __name__ == "__main__":
     try:
