@@ -29,7 +29,7 @@ You need to tell the Raspberry Pi kernel to use the GPIO pin for IR reception.
 1.  **Clone the repository** (if you haven't already extracted it there):
     ```bash
     cd /home/pi
-    git clone https://github.com/johnnywey/devialet-pi-remote.git
+    git clone https://github.com/johnnywey/IR-to-Devialet-IP-Remote.git 
     cd devialet-pi-remote
     ```
     *(If you copied the files manually, just `cd` into the directory)*
