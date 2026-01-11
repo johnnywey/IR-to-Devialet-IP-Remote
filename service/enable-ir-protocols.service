@@ -1,0 +1,11 @@
+[Unit]
+Description=Enable all IR protocols
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ir-keytable -p all
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

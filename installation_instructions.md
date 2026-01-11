@@ -99,28 +99,20 @@ We will use `systemd` to keep the service running in the background and start it
 
 
 
-## 6. Persisting IR Protocol (Important!)
 
-If your remote works with `debug_ir.sh` (which enables all protocols) but not by default, you need to tell the system to load the right protocol at boot.
+## 6. Persisting IR Protocol (Reliable Method)
 
-The cleanest way is to update your boot config:
+Since `config.txt` parameters can be finicky depending on the specific kernel version, the most reliable method is to create a startup service that explicitly enables the protocols (just like `debug_ir.sh` does).
 
-1.  Edit `/boot/firmware/config.txt`:
+1.  **Install the Protocol Service**:
     ```bash
-    sudo nano /boot/firmware/config.txt
+    sudo cp service/enable-ir-protocols.service /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo systemctl enable enable-ir-protocols
+    sudo systemctl start enable-ir-protocols
     ```
 
-2.  Update the `dtoverlay` line to include the map name. 
-    *   For most generic remotes (NEC protocol), use `rc-nec`:
-        ```
-        dtoverlay=gpio-ir,gpio_pin=17,rc-map-name=rc-nec
-        ```
-    *   If that doesn't work, `rc-rc6-mce` is the default. You can verify which protocol your remote uses by briefly running `debug_ir.sh` and noting the protocol name in the output logs.
-
-3.  Reboot:
-    ```bash
-    sudo reboot
-    ```
+    *This ensures that `ir-keytable -p all` runs every time the Pi boots.*
 
 
 ## 5. Troubleshooting Permissions
