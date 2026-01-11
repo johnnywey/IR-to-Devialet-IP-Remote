@@ -97,6 +97,23 @@ We will use `systemd` to keep the service running in the background and start it
     sudo journalctl -u phantom-bridge -f
     ```
 
+
+## 6. Persisting IR Protocol (Important!)
+
+If `diagnostics.py` only worked after running `debug_ir.sh`, it means your remote uses a protocol (likely NEC) that isn't enabled by default. To make this permanent:
+
+1.  **Install ir-keytable** (if not already):
+    ```bash
+    sudo apt-get install ir-keytable
+    ```
+
+2.  **Add a startup rule**:
+    Edit `/etc/rc.local` and add the following line **before** `exit 0`:
+    ```bash
+    /usr/bin/ir-keytable -p all
+    ```
+    *(Enabling 'all' is safe and ensures your remote works regardless of protocol. You can specify `-p nec` if you prefer.)*
+
 ## 5. Troubleshooting Permissions
 
 If the service fails with "Permission denied" errors related to accessing `/dev/input`, ensure the `pi` user is in the `input` group:
