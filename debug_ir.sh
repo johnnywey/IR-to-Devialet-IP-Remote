@@ -16,7 +16,8 @@ if ! command -v ir-keytable &> /dev/null; then
     echo -e "${RED}Error: ir-keytable not found.${NC}"
     echo "It is required to change IR protocols."
     echo ""
-    echo -e "Install it with: ${GREEN}sudo apt-get install v4l-utils${NC}"
+    echo -e "Install it with: ${GREEN}sudo apt-get install ir-keytable${NC}"
+    echo " (On some systems, it might be part of v4l-utils, but usually it's a separate package)"
     exit 1
 fi
 
