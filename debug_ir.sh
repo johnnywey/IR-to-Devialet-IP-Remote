@@ -31,15 +31,19 @@ echo -e "Current Protocol Configuration:"
 ir-keytable
 
 # Find the RC device for gpio_ir_recv using explicit loop
+# Find the RC device for gpio_ir_recv using explicit integer loop
 RC_DEV=""
-echo -e "\nScanning /sys/class/rc/ for gpio_ir_recv..."
-for f in /sys/class/rc/rc*/name; do
-    if [ -f "$f" ]; then
-        if grep -q "gpio_ir_recv" "$f"; then
-            echo "Match found in: $f"
-            RC_DIR=$(dirname "$f")
-            RC_DEV=$(basename "$RC_DIR")
-            break
+echo -e "\nScanning /sys/class/rc/rc{0..9} for gpio_ir_recv..."
+
+for i in $(seq 0 9); do
+    if [ -f "/sys/class/rc/rc$i/name" ]; then
+        # Read the Name
+        CURRENT_NAME=$(cat "/sys/class/rc/rc$i/name")
+        echo "Checking rc$i: $CURRENT_NAME"
+        if [[ "$CURRENT_NAME" == *"gpio_ir_recv"* ]]; then
+             RC_DEV="rc$i"
+             echo "-> Match found!"
+             break
         fi
     fi
 done
