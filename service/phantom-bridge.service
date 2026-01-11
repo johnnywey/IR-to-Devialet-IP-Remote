@@ -6,8 +6,8 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/devialet-pi-remote
-ExecStart=/home/pi/devialet-pi-remote/venv/bin/python main.py
+WorkingDirectory=/home/pi/IR-to-Devialet-IP-Remote
+ExecStart=/home/pi/IR-to-Devialet-IP-Remote/venv/bin/python main.py
 Restart=always
 RestartSec=10
 Environment=PYTHONUNBUFFERED=1
