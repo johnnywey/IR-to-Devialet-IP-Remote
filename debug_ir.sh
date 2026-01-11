@@ -31,22 +31,28 @@ echo -e "Current Protocol Configuration:"
 ir-keytable
 
 # Find the RC device for gpio_ir_recv using explicit loop
-# Find the RC device for gpio_ir_recv using explicit integer loop
-RC_DEV=""
-echo -e "\nScanning /sys/class/rc/rc{0..9} for gpio_ir_recv..."
+# Find the RC device for gpio_ir_recv by parsing ir-keytable output
+echo -e "\nScanning ir-keytable output for gpio_ir_recv..."
 
-for i in $(seq 0 9); do
-    if [ -f "/sys/class/rc/rc$i/name" ]; then
-        # Read the Name
-        CURRENT_NAME=$(cat "/sys/class/rc/rc$i/name")
-        echo "Checking rc$i: $CURRENT_NAME"
-        if [[ "$CURRENT_NAME" == *"gpio_ir_recv"* ]]; then
-             RC_DEV="rc$i"
-             echo "-> Match found!"
-             break
-        fi
-    fi
-done
+# Capture the raw line
+# Expected: "Found /sys/class/rc/rcX/ with:"
+# We grep for "Name: gpio_ir_recv" and get the line before it
+RAW_LINE=$(ir-keytable 2>&1 | grep -B 1 "Name: gpio_ir_recv" | head -n 1)
+echo "Debug: Raw line found -> '$RAW_LINE'"
+
+# Extract the path (2nd word)
+RC_DEV_PATH=$(echo "$RAW_LINE" | awk '{print $2}')
+echo "Debug: Extracted path -> '$RC_DEV_PATH'"
+
+# Extract basename rcX
+RC_DEV=$(basename "$RC_DEV_PATH")
+echo "Debug: Resolved device -> '$RC_DEV'"
+
+if [ -z "$RC_DEV" ] || [ "$RC_DEV" == "/" ]; then
+    echo -e "${RED}Error: Could not extract device name.${NC}"
+else
+    echo -e "\n${YELLOW}Targeting device: $RC_DEV${NC}"
+fi
 
 if [ -z "$RC_DEV" ]; then
     echo -e "${RED}Error: Could not automatically find gpio_ir_recv device.${NC}"
