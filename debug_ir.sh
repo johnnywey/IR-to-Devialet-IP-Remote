@@ -30,8 +30,17 @@ fi
 echo -e "Current Protocol Configuration:"
 ir-keytable
 
-echo -e "\n${YELLOW}Attempting to enable ALL protocols...${NC}"
-sudo ir-keytable -p all
+# Find the RC device for gpio_ir_recv
+RC_DEV=$(ir-keytable 2>/dev/null | grep -B 1 "gpio_ir_recv" | head -n 1 | awk '{print $NF}' | tr -d ':')
+
+if [ -z "$RC_DEV" ]; then
+    echo -e "${RED}Error: Could not automatically find gpio_ir_recv device.${NC}"
+    echo "Trying default 'all'..."
+    sudo ir-keytable -p all
+else
+    echo -e "\n${YELLOW}Detected IR device at $RC_DEV. Enabling ALL protocols on it...${NC}"
+    sudo ir-keytable -s "$RC_DEV" -p all
+fi
 
 echo -e "\n${YELLOW}Starting signal test...${NC}"
 echo "Point your remote at the receiver and press buttons."
@@ -39,4 +48,8 @@ echo "If you see events below (EV_MSC, EV_KEY, etc.), your hardware is working!"
 echo "Press Ctrl+C to exit."
 echo "------------------------------------------------"
 
-sudo ir-keytable -t
+if [ -z "$RC_DEV" ]; then
+    sudo ir-keytable -t
+else
+    sudo ir-keytable -s "$RC_DEV" -t
+fi
