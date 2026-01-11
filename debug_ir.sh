@@ -30,24 +30,32 @@ fi
 echo -e "Current Protocol Configuration:"
 ir-keytable
 
-# Find the RC device for gpio_ir_recv using sysfs (more reliable)
-# This looks for the file containing "gpio_ir_recv", e.g. /sys/class/rc/rc2/name
-RC_NAME_FILE=$(grep -l "gpio_ir_recv" /sys/class/rc/rc*/name 2>/dev/null | head -n 1)
-
-if [ -n "$RC_NAME_FILE" ]; then
-    # Extract "rc2" from "/sys/class/rc/rc2/name"
-    RC_DIR=$(dirname "$RC_NAME_FILE")
-    RC_DEV=$(basename "$RC_DIR")
-fi
+# Find the RC device for gpio_ir_recv using explicit loop
+RC_DEV=""
+echo -e "\nScanning /sys/class/rc/ for gpio_ir_recv..."
+for f in /sys/class/rc/rc*/name; do
+    if [ -f "$f" ]; then
+        if grep -q "gpio_ir_recv" "$f"; then
+            echo "Match found in: $f"
+            RC_DIR=$(dirname "$f")
+            RC_DEV=$(basename "$RC_DIR")
+            break
+        fi
+    fi
+done
 
 if [ -z "$RC_DEV" ]; then
     echo -e "${RED}Error: Could not automatically find gpio_ir_recv device.${NC}"
+    echo "This is unexpected. Here are the available devices:"
+    grep . /sys/class/rc/rc*/name 2>/dev/null
+    
     echo "Trying default 'all'..."
     sudo ir-keytable -p all
 else
-    echo -e "\n${YELLOW}Detected IR device at $RC_DEV. Enabling ALL protocols on it...${NC}"
+    echo -e "\n${YELLOW}Detected IR device: $RC_DEV. Enabling ALL protocols on it...${NC}"
     sudo ir-keytable -s "$RC_DEV" -p all
 fi
+
 
 echo -e "\n${YELLOW}Starting signal test...${NC}"
 echo "Point your remote at the receiver and press buttons."
