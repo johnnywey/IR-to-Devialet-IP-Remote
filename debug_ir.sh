@@ -11,6 +11,9 @@ echo -e "${YELLOW}------------------------------------------------${NC}"
 echo -e "${YELLOW}           IR Troubleshooting Tool              ${NC}"
 echo -e "${YELLOW}------------------------------------------------${NC}"
 
+# Enable verbose debugging to see exactly what happens
+set -x
+
 echo -e "\nChecking for /dev/lirc devices..."
 ls -l /dev/lirc* 2>/dev/null || echo "Request: No /dev/lirc* devices found."
 
@@ -19,6 +22,7 @@ dmesg | grep -i "gpio-ir" | tail -n 5 || echo "No kernel logs found."
 
 # Check for ir-keytable
 if ! command -v ir-keytable &> /dev/null; then
+    set +x
     echo -e "${RED}Error: ir-keytable not found.${NC}"
     echo "It is required to change IR protocols."
     echo ""
@@ -27,10 +31,11 @@ if ! command -v ir-keytable &> /dev/null; then
     exit 1
 fi
 
+set +x
 echo -e "Current Protocol Configuration:"
 ir-keytable
+set -x
 
-# Find the RC device for gpio_ir_recv using explicit loop
 # Find the RC device for gpio_ir_recv by parsing ir-keytable output
 echo -e "\nScanning ir-keytable output for gpio_ir_recv..."
 
@@ -49,24 +54,32 @@ RC_DEV=$(basename "$RC_DEV_PATH")
 echo "Debug: Resolved device -> '$RC_DEV'"
 
 if [ -z "$RC_DEV" ] || [ "$RC_DEV" == "/" ]; then
+    set +x
     echo -e "${RED}Error: Could not extract device name.${NC}"
+    # Fallback to trying to find it via sysfs manually if parsing failed
+    echo "Attempting SysFS fallback..."
+    RC_NAME_FILE=$(grep -l "gpio_ir_recv" /sys/class/rc/rc*/name 2>/dev/null | head -n 1)
+    if [ -n "$RC_NAME_FILE" ]; then
+        RC_DIR=$(dirname "$RC_NAME_FILE")
+        RC_DEV=$(basename "$RC_DIR")
+        echo "SysFS found: $RC_DEV"
+    fi
+    set -x
 else
+    set +x
     echo -e "\n${YELLOW}Targeting device: $RC_DEV${NC}"
+    set -x
 fi
 
 if [ -z "$RC_DEV" ]; then
-    echo -e "${RED}Error: Could not automatically find gpio_ir_recv device.${NC}"
-    echo "This is unexpected. Here are the available devices:"
-    grep . /sys/class/rc/rc*/name 2>/dev/null
-    
-    echo "Trying default 'all'..."
+    echo "Could not find device. Trying 'all' (might fail on HDMI)..."
     sudo ir-keytable -p all
 else
-    echo -e "\n${YELLOW}Detected IR device: $RC_DEV. Enabling ALL protocols on it...${NC}"
+    echo "Enabling all protocols on $RC_DEV..."
     sudo ir-keytable -s "$RC_DEV" -p all
 fi
 
-
+set +x
 echo -e "\n${YELLOW}Starting signal test...${NC}"
 echo "Point your remote at the receiver and press buttons."
 echo "If you see events below (EV_MSC, EV_KEY, etc.), your hardware is working!"
