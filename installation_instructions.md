@@ -98,21 +98,30 @@ We will use `systemd` to keep the service running in the background and start it
     ```
 
 
+
 ## 6. Persisting IR Protocol (Important!)
 
-If `diagnostics.py` only worked after running `debug_ir.sh`, it means your remote uses a protocol (likely NEC) that isn't enabled by default. To make this permanent:
+If your remote works with `debug_ir.sh` (which enables all protocols) but not by default, you need to tell the system to load the right protocol at boot.
 
-1.  **Install ir-keytable** (if not already):
+The cleanest way is to update your boot config:
+
+1.  Edit `/boot/firmware/config.txt`:
     ```bash
-    sudo apt-get install ir-keytable
+    sudo nano /boot/firmware/config.txt
     ```
 
-2.  **Add a startup rule**:
-    Edit `/etc/rc.local` and add the following line **before** `exit 0`:
+2.  Update the `dtoverlay` line to include the map name. 
+    *   For most generic remotes (NEC protocol), use `rc-nec`:
+        ```
+        dtoverlay=gpio-ir,gpio_pin=17,rc-map-name=rc-nec
+        ```
+    *   If that doesn't work, `rc-rc6-mce` is the default. You can verify which protocol your remote uses by briefly running `debug_ir.sh` and noting the protocol name in the output logs.
+
+3.  Reboot:
     ```bash
-    /usr/bin/ir-keytable -p all
+    sudo reboot
     ```
-    *(Enabling 'all' is safe and ensures your remote works regardless of protocol. You can specify `-p nec` if you prefer.)*
+
 
 ## 5. Troubleshooting Permissions
 
