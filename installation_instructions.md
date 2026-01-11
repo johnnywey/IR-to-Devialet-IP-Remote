@@ -105,14 +105,20 @@ We will use `systemd` to keep the service running in the background and start it
 Since `config.txt` parameters can be finicky depending on the specific kernel version, the most reliable method is to create a startup service that explicitly enables the protocols (just like `debug_ir.sh` does).
 
 1.  **Install the Protocol Service**:
+    We need to install a helper script and the service file.
     ```bash
+    # Install helper script
+    sudo cp service/enable_ir.sh /usr/local/bin/
+    sudo chmod +x /usr/local/bin/enable_ir.sh
+
+    # Install service
     sudo cp service/enable-ir-protocols.service /etc/systemd/system/
     sudo systemctl daemon-reload
     sudo systemctl enable enable-ir-protocols
     sudo systemctl start enable-ir-protocols
     ```
 
-    *This ensures that `ir-keytable -p all` runs every time the Pi boots.*
+    *This ensures that our robust detection script runs every time the Pi boots.*
 
 
 ## 5. Troubleshooting Permissions

@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/ir-keytable -p all
+ExecStart=/usr/local/bin/enable_ir.sh
 RemainAfterExit=yes
 
 [Install]
