@@ -33,6 +33,7 @@ class PhantomBridge:
         
         self.last_volume_time = 0.0
         self.debounce_window = self.config.get("speaker", {}).get("debounce_ms", 300) / 1000.0
+        self.running = True
         
     async def get_ir_device(self):
         """
