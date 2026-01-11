@@ -59,7 +59,12 @@ This service bridges IR signals from an Apple TV Siri Remote (or any IR remote) 
 
 ## Troubleshooting
 - **Check logs:** `sudo journalctl -u phantom-bridge -f`
-- **Verify IR:** Run `diagnostics.py` (stop service first: `sudo systemctl stop phantom-bridge`).
+- **Verify IR:** 
+  1. Stop service: `sudo systemctl stop phantom-bridge`
+  2. Run python diagnostics: `python diagnostics.py`
+  3. **No codes?** Run the advanced debugger: `./debug_ir.sh`
+     - This will enable ALL protocols (NEC, RC-6, etc.) to ensure your remote is detected.
+     - If `debug_ir.sh` shows codes but `diagnostics.py` doesn't, your remote uses a protocol not enabled by default. Add the protocol line to `/etc/rc.local` (e.g., `ir-keytable -p nec`).
 - **Manual Control:** Run `python manual_control.py` to test network control without IR. 
   - Use `v` to check volume, `m` to mute, `u` to unmute.
   - This tool also enforces the System Leader check, helping you identify the correct IP.
