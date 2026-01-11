@@ -30,12 +30,17 @@ fi
 echo -e "Current Protocol Configuration:"
 ir-keytable
 
-# Find the RC device for gpio_ir_recv
-# Output format: "Found /sys/class/rc/rc2/ with:"
-RC_DEV_PATH=$(ir-keytable 2>/dev/null | grep -B 1 "gpio_ir_recv" | head -n 1 | awk '{print $2}')
-RC_DEV=$(basename "$RC_DEV_PATH")
+# Find the RC device for gpio_ir_recv using sysfs (more reliable)
+# This looks for the file containing "gpio_ir_recv", e.g. /sys/class/rc/rc2/name
+RC_NAME_FILE=$(grep -l "gpio_ir_recv" /sys/class/rc/rc*/name 2>/dev/null | head -n 1)
 
-if [ -z "$RC_DEV" ] || [ "$RC_DEV" == "/" ]; then
+if [ -n "$RC_NAME_FILE" ]; then
+    # Extract "rc2" from "/sys/class/rc/rc2/name"
+    RC_DIR=$(dirname "$RC_NAME_FILE")
+    RC_DEV=$(basename "$RC_DIR")
+fi
+
+if [ -z "$RC_DEV" ]; then
     echo -e "${RED}Error: Could not automatically find gpio_ir_recv device.${NC}"
     echo "Trying default 'all'..."
     sudo ir-keytable -p all
