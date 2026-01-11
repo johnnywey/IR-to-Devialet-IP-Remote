@@ -10,6 +10,6 @@ fi
 # Activate and install
 source venv/bin/activate
 echo "Installing dependencies..."
-pip install -r requirements.txt
+SKIP_CYTHON=y pip install -r requirements.txt
 
 echo "Setup complete. Activate with: source venv/bin/activate"

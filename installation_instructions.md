@@ -40,6 +40,7 @@ You need to tell the Raspberry Pi kernel to use the GPIO pin for IR reception.
     chmod +x setup_env.sh
     ./setup_env.sh
     ```
+    *(Note: This script now skips compiling `zeroconf` extensions to avoid hanging on Raspberry Pi. If you install manually, use `SKIP_CYTHON=y pip install zeroconf`)*
 
 ## 3. Configure the Application
 
