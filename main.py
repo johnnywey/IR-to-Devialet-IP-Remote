@@ -139,14 +139,28 @@ async def main():
     stop = asyncio.Event()
     
     def ask_exit():
-        logger.info("Stopping...")
+        logger.info("Stopping signal received...")
         stop.set()
-        bridge.running = False
 
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, ask_exit)
 
-    await bridge.run()
+    # Run the bridge in a task so we can cancel it
+    bridge_task = asyncio.create_task(bridge.run())
+    
+    # Wait for CTRL+C
+    await stop.wait()
+    
+    logger.info("Shutting down...")
+    bridge.running = False
+    bridge_task.cancel()
+    
+    try:
+        await bridge_task
+    except asyncio.CancelledError:
+        logger.info("Bridge task cancelled.")
+        
+    await bridge.shutdown()
 
 if __name__ == "__main__":
     try:
