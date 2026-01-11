@@ -11,6 +11,12 @@ echo -e "${YELLOW}------------------------------------------------${NC}"
 echo -e "${YELLOW}           IR Troubleshooting Tool              ${NC}"
 echo -e "${YELLOW}------------------------------------------------${NC}"
 
+echo -e "\nChecking for /dev/lirc devices..."
+ls -l /dev/lirc* 2>/dev/null || echo "Request: No /dev/lirc* devices found."
+
+echo -e "\nChecking kernel logs for gpio-ir..."
+dmesg | grep -i "gpio-ir" | tail -n 5 || echo "No kernel logs found."
+
 # Check for ir-keytable
 if ! command -v ir-keytable &> /dev/null; then
     echo -e "${RED}Error: ir-keytable not found.${NC}"
