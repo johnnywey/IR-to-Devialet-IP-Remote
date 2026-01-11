@@ -38,6 +38,8 @@ async def main():
     print("Starting Devialet Discovery...")
     print("------------------------------------------------")
     
+    volume_step = config.get("speaker", {}).get("volume_step", 2)
+    
     # Start discovery in background
     asyncio.create_task(client.start())
     
@@ -72,14 +74,14 @@ async def main():
             elif key == '+':
                 print("\nVolume Up")
                 current = await client.get_volume()
-                await client.set_volume(current + 5)
+                await client.set_volume(current + volume_step)
                 # Show new volume
                 new_vol = await client.get_volume()
                 print(f"Volume: {new_vol}")
             elif key == '-':
                 print("\nVolume Down")
                 current = await client.get_volume()
-                await client.set_volume(current - 5)
+                await client.set_volume(current - volume_step)
                 new_vol = await client.get_volume()
                 print(f"Volume: {new_vol}")
             elif key == 'v':

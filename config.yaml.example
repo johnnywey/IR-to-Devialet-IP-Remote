@@ -1,6 +1,6 @@
 speaker:
   name: "Phantom" # mDNS search string - usually "Phantom I" or "Phantom II" or room name
-  volume_step: 3
+  volume_step: 2
   static_ip: null # Optional: "192.168.1.X" to bypass mDNS
 
 ir_codes:
