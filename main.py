@@ -32,9 +32,8 @@ class PhantomBridge:
         self.volume_step = self.config.get("speaker", {}).get("volume_step", 2)
         
         self.last_volume_time = 0.0
-        self.debounce_window = 0.1 # 100ms
-        self.running = True
-
+        self.debounce_window = self.config.get("speaker", {}).get("debounce_ms", 300) / 1000.0
+        
     async def get_ir_device(self):
         """
         Scan system input devices to find a likely IR receiver.
@@ -64,8 +63,7 @@ class PhantomBridge:
         """
         Map IR scancodes to actions and execute them via the client.
         
-        Includes simple debouncing for volume actions to prevent rapid-fire repeats
-        from overwhelming the speaker or network.
+        Includes simple debouncing for all keys.
         
         Args:
             scancode (int): Raw IR scancode.
@@ -76,12 +74,11 @@ class PhantomBridge:
             return
 
         now = time.time()
-        # Basic debouncing logic for volume
-        if "volume" in action:
-            if now - self.last_volume_time < self.debounce_window:
-                logger.debug("Debouncing volume code")
-                return
-            self.last_volume_time = now
+        # Global debouncing logic
+        if now - self.last_volume_time < self.debounce_window:
+            logger.debug(f"Debouncing {action} (too soon)")
+            return
+        self.last_volume_time = now
 
         logger.info(f"Action: {action} (from {hex(scancode)})")
 
